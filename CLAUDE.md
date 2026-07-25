@@ -31,7 +31,11 @@ python3 tools/make_icon.py          # regenerate the icon only
 | `datetree/settings.py` | Remembers last-used folders |
 | `datetree/__main__.py` | Entry point; also the date-inspection CLI |
 | `tools/` | `make_app.sh`, `launcher.sh.in`, `make_icon.py` |
+| `assets/DateTree.icns` | Tracked icon asset; the bundle gets a copy |
 | `tests/nef_fixture.py` | Builds synthetic NEFs so tests need no real raw files |
+
+`DateTree.app` is generated and **git-ignored** — never hand-edit it; edit
+`tools/launcher.sh.in` and re-run `./tools/make_app.sh`.
 
 The engine takes callbacks (`on_scanned`, `on_progress`, `is_cancelled`) and
 knows nothing about Tk; the GUI runs it on a worker thread and marshals events
@@ -61,7 +65,9 @@ source == destination rejected; nothing is ever moved or deleted.
 - `python@3.13` is also installed **without Tk** — handy for testing Tk-less
   code paths, and a trap if something picks it up accidentally.
 - `/usr/bin/python3` is 3.9 with Tk 8.5; works but looks dated.
-- Not a git repo. There is no commit history to consult.
+- Git repo on `main`, no remote. History starts at the initial commit; the app
+  was built before the repo existed, so early stages aren't in history — that
+  initial commit message records the sequence. Commit as work progresses now.
 
 ## Gotchas discovered the hard way
 
