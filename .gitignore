@@ -1,0 +1,12 @@
+# Build artifact: tools/make_app.sh regenerates it. Not tracked because its
+# launcher has an absolute project path baked in, it symlinks a machine-specific
+# Python, and it carries an ad-hoc code signature that would go stale.
+/DateTree.app/
+
+__pycache__/
+*.py[cod]
+
+# Personal permission grants, not project configuration.
+.claude/settings.local.json
+
+.DS_Store

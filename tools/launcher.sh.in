@@ -1,0 +1,51 @@
+#!/bin/bash
+#
+# DateTree.app launcher. Locates the project and hands off to start.sh.
+#
+# Regenerate this bundle with tools/make_app.sh.
+
+set -euo pipefail
+
+LOG="$HOME/Library/Logs/DateTree.log"
+mkdir -p "$(dirname "$LOG")"
+
+# Launched by LaunchServices there is no terminal to print to, so keep a log
+# instead -- otherwise a startup failure is completely silent.
+exec >>"$LOG" 2>&1
+echo "--- $(date '+%Y-%m-%d %H:%M:%S') launching ---"
+
+# The bundle normally sits in the project root, but it also works when copied
+# or aliased into /Applications, hence the recorded fallback path.
+BUNDLE_MACOS="$(cd "$(dirname "$0")" && pwd)"
+PROJECT="$(cd "$BUNDLE_MACOS/../../.." && pwd)"
+FALLBACK_PROJECT="__PROJECT_DIR__"
+
+if [ ! -x "$PROJECT/start.sh" ]; then
+    PROJECT="$FALLBACK_PROJECT"
+fi
+
+if [ ! -x "$PROJECT/start.sh" ]; then
+    echo "Cannot find start.sh (looked in $BUNDLE_MACOS/../../.. and $FALLBACK_PROJECT)"
+    /usr/bin/osascript -e 'display alert "DateTree" message "Could not find the DateTree project folder. See ~/Library/Logs/DateTree.log." as critical' || true
+    exit 1
+fi
+
+echo "project: $PROJECT"
+
+# python-gui is a symlink (created by tools/make_app.sh) to the GUI-capable
+# Python binary. Exec'ing it through a path *inside this bundle* is what makes
+# macOS attribute the process to DateTree.app -- our name and icon in the Dock
+# and the menu bar. Exec'ing Python at its own location instead attributes the
+# process to Python.app, which is why it would otherwise appear as "Python".
+PYTHON_GUI="$BUNDLE_MACOS/python-gui"
+if [ -x "$PYTHON_GUI" ]; then
+    cd "$PROJECT"
+    export PYTHONPATH="$PROJECT${PYTHONPATH:+:$PYTHONPATH}"
+    echo "python: $PYTHON_GUI"
+    exec "$PYTHON_GUI" -m datetree
+fi
+
+# Broken symlink, e.g. after a Python upgrade. Still start the app -- it just
+# shows up as "Python" until tools/make_app.sh is run again.
+echo "python-gui missing or broken; falling back to start.sh (will appear as Python)"
+exec "$PROJECT/start.sh"
