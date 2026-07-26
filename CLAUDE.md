@@ -113,11 +113,12 @@ Each of these cost real debugging time. They are all verified, not theory.
 
 - 55 tests pass (`unittest`, no pytest). 7 of them drive real Tk widgets and
   copy real files through the worker thread.
-- **The EXIF reader has never been run against a genuine Nikon NEF** — there
-  are none on this machine. It is verified only against the synthetic TIFFs in
-  `tests/nef_fixture.py`. Ask the user to run
-  `./start.sh /path/to/real.NEF`: `(exif)` means it worked, `(mtime)` means it
-  fell back and the reader needs a look.
+- The EXIF reader is confirmed working against genuine Nikon NEF files: Steve
+  tested it on real photographs on 2026-07-26. Automated coverage still uses
+  the synthetic TIFFs in `tests/nef_fixture.py`, since real raws are far too
+  large to commit. To re-check after changing `exif.py`, run
+  `./start.sh /path/to/real.NEF` — `(exif)` means the capture date was read,
+  `(mtime)` means it fell back and the reader needs a look.
 - **Screen capture is blocked** in this environment (macOS TCC — `screencapture`
   fails with "could not create image from display"), so no GUI change has ever
   been visually confirmed by Claude. Verify layout/painting by reasoning about
