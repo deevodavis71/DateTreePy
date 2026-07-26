@@ -216,3 +216,11 @@ python3 -m unittest discover -s tests -t .
 `tests/nef_fixture.py` builds tiny synthetic NEFs (valid TIFF containers with
 real EXIF date tags, both byte orders) so the date logic can be tested without
 committing 25MB raw files.
+
+## Licence
+
+MIT — see [LICENSE](LICENSE).
+
+That covers this implementation, which is entirely original code. It grants no
+rights in the original DateTree, its name or its design, which remain Colin
+Henein's; see *Origin and credit* above.
