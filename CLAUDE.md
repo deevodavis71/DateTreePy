@@ -5,10 +5,17 @@ macOS GUI app that copies Nikon `.NEF` files from a card/folder into
 tkinter, **standard library only — no third-party packages**. Keep it that way
 unless the user asks otherwise.
 
-Built from scratch in July 2026 as a Python rewrite of an existing macOS app,
-specified from a screenshot of that app's window. `README.md` is the
-user-facing documentation; this file is the context that isn't obvious from the
-code.
+Built from scratch in July 2026. `README.md` is the user-facing documentation;
+this file is the context that isn't obvious from the code.
+
+**Provenance — matters, don't blur it.** This is a clean-room reimplementation
+of *DateTree* by Colin Henein (https://www.orange-carb.org/DateTree/, v1.3,
+©2020), which Steve has used for years and which is expected to stop working on
+future macOS releases. The name, layout and button wording come from that app;
+**everything here was written from screenshots only**. Never copy, decompile or
+inspect the original's code or assets, and don't present this as affiliated with
+or endorsed by its author. The credit section at the top of `README.md` says all
+this publicly — keep it there.
 
 ## Commands
 

@@ -10,6 +10,26 @@ folder and files them into date folders under a destination of your choosing:
 The date comes from the photo's own EXIF capture time, so files land under the
 day the shutter fired rather than whenever they were last touched.
 
+## Origin and credit
+
+This is a reimplementation of **DateTree by Colin Henein**
+(<https://www.orange-carb.org/DateTree/>, version 1.3, ©2020) — the macOS app
+that has handled this job for me for years. The name, the two-panel window, and
+the "Copy From:" / "Organize Into:" wording are all his. Screenshots of his app
+were the entire specification for this one.
+
+I have tried to contact Colin about it without success; the app has been around
+long enough that he no longer seems to respond to enquiries about it.
+
+The reason for rebuilding it is simply that the original is no longer maintained
+and is expected to stop working on forthcoming macOS releases. I would rather
+keep the workflow than lose it when that happens.
+
+This is an independent, from-scratch implementation in Python. No code from the
+original was used, inspected or decompiled — only its visible interface was
+reproduced. It is not affiliated with or endorsed by Colin Henein. With thanks
+to him for the original, which was a pleasure to use.
+
 ## Requirements
 
 - Python 3.13+ with Tk support. On macOS:
