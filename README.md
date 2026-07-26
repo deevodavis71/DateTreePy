@@ -30,6 +30,20 @@ original was used, inspected or decompiled — only its visible interface was
 reproduced. It is not affiliated with or endorsed by Colin Henein. With thanks
 to him for the original, which was a pleasure to use.
 
+## Use at your own risk
+
+This software is provided as is, with no warranty of any kind. No
+responsibility is accepted for any data loss, file corruption, or other damage
+or inconvenience arising from its use. You use it entirely at your own risk.
+
+It is written to be conservative with your photographs — it only ever reads
+from the source folder, never moves or deletes anything, and skips files that
+already exist at the destination — but no software is free of bugs. **Check
+that your photographs have arrived safely before erasing a card, and keep
+backups.**
+
+The MIT licence at the foot of this file says the same thing in formal terms.
+
 ## Requirements
 
 - Python 3.13+ with Tk support. On macOS:
@@ -219,7 +233,8 @@ committing 25MB raw files.
 
 ## Licence
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE). It includes the usual disclaimer of warranty and
+liability; see *Use at your own risk* above.
 
 That covers this implementation, which is entirely original code. It grants no
 rights in the original DateTree, its name or its design, which remain Colin
