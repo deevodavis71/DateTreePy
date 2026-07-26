@@ -39,7 +39,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <key>CFBundleDisplayName</key>                <string>DateTree</string>
     <key>CFBundleExecutable</key>                 <string>DateTree</string>
     <key>CFBundleIconFile</key>                   <string>DateTree</string>
-    <key>CFBundleIdentifier</key>                 <string>uk.co.impsoftware.datetree</string>
+    <key>CFBundleIdentifier</key>                 <string>io.github.deevodavis71.datetreepy</string>
     <key>CFBundleInfoDictionaryVersion</key>      <string>6.0</string>
     <key>CFBundleName</key>                       <string>DateTree</string>
     <key>CFBundlePackageType</key>                <string>APPL</string>
