@@ -44,7 +44,7 @@ to him for the original, which was a pleasure to use.
 Double-click **DateTree.app** in the project root, or from a terminal:
 
 ```sh
-/Users/stevedavis/Development/PyPhotoCopy/start.sh
+./start.sh          # or its full path, from anywhere
 ```
 
 `DateTree.app` is the better route for anything that isn't a terminal — Finder,
@@ -90,7 +90,7 @@ The robust fix is to let LaunchServices start the app, which sidesteps process
 activation entirely. In an Automator *Run Shell Script* action use:
 
 ```sh
-open -a /Users/stevedavis/Development/PyPhotoCopy/DateTree.app
+open -a /path/to/DateTreePy/DateTree.app
 ```
 
 `open` returns immediately, so the workflow finishes instead of sitting there
