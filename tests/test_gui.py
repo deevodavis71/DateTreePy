@@ -182,8 +182,48 @@ class GuiTests(unittest.TestCase):
         self._make_app()
         self.assertEqual(self.settings_path.read_text(encoding="utf-8"), first)
 
+    def test_eject_reminder_is_off_by_default(self):
+        self.assertFalse(self.app.eject_reminder.get())
+
+    def test_eject_reminder_choice_is_saved_and_restored(self):
+        self.app.eject_reminder.set(True)
+        self.app._save_settings()
+        self.assertTrue(self._make_app().eject_reminder.get())
+
+    def _run_with_reminder(self, enabled: bool, on_volume: str | None):
+        build_nef(self.source / "DSC_0001.NEF", original="2026:07:25 14:32:10")
+        self.app.source_panel.set_path(self.source)
+        self.app.dest_panel.set_path(self.dest)
+        self.app.eject_reminder.set(enabled)
+        with mock.patch.object(gui, "volume_name", return_value=on_volume), \
+                mock.patch.object(gui.messagebox, "showinfo") as showinfo:
+            self.app._on_organize()
+            self._pump_until(lambda: "Copied" in self.app.status.cget("text"))
+        return showinfo
+
+    def test_eject_reminder_names_the_card_after_copying(self):
+        showinfo = self._run_with_reminder(enabled=True, on_volume="NIKON Z 6")
+        showinfo.assert_called_once()
+        self.assertIn("NIKON Z 6", showinfo.call_args[0][1])
+
+    def test_no_eject_reminder_when_option_is_off(self):
+        showinfo = self._run_with_reminder(enabled=False, on_volume="NIKON Z 6")
+        showinfo.assert_not_called()
+
+    def test_no_eject_reminder_when_source_is_not_on_a_volume(self):
+        showinfo = self._run_with_reminder(enabled=True, on_volume=None)
+        showinfo.assert_not_called()
+
 
 class HelperTests(unittest.TestCase):
+    def test_volume_name_for_a_path_on_a_mounted_volume(self):
+        self.assertEqual(
+            gui.volume_name(Path("/Volumes/NIKON Z 6/DCIM/100NZ6")), "NIKON Z 6"
+        )
+
+    def test_volume_name_is_none_for_the_internal_disk(self):
+        self.assertIsNone(gui.volume_name(Path(tempfile.gettempdir())))
+
     def test_human_bytes(self):
         self.assertEqual(gui.human_bytes(0), "0 B")
         self.assertEqual(gui.human_bytes(999), "999 B")

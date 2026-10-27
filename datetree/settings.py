@@ -1,4 +1,4 @@
-"""Remember the folders chosen in the previous session."""
+"""Remember the folders and options chosen in the previous session."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from pathlib import Path
 APP_DIR_NAME = "DateTree"
 KEY_SOURCE = "source"
 KEY_DESTINATION = "destination"
+KEY_EJECT_REMINDER = "eject_reminder"
 
 
 def default_settings_path() -> Path:
@@ -28,6 +29,7 @@ def default_settings_path() -> Path:
 class Settings:
     source: Path | None = None
     destination: Path | None = None
+    eject_reminder: bool = False
 
 
 def _as_path(value: object) -> Path | None:
@@ -48,6 +50,7 @@ def load(path: Path | None = None) -> Settings:
     return Settings(
         source=_as_path(raw.get(KEY_SOURCE)),
         destination=_as_path(raw.get(KEY_DESTINATION)),
+        eject_reminder=raw.get(KEY_EJECT_REMINDER) is True,
     )
 
 
@@ -61,6 +64,7 @@ def save(settings: Settings, path: Path | None = None) -> bool:
     payload = {
         KEY_SOURCE: str(settings.source) if settings.source else None,
         KEY_DESTINATION: str(settings.destination) if settings.destination else None,
+        KEY_EJECT_REMINDER: settings.eject_reminder,
     }
     try:
         path.parent.mkdir(parents=True, exist_ok=True)

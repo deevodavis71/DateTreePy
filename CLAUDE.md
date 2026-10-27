@@ -23,7 +23,7 @@ this publicly — keep it there.
 ./start.sh                          # run the app (terminal)
 open DateTree.app                   # run the app (LaunchServices — see gotchas)
 ./start.sh path/to/FILE.NEF         # print the date it would file a file under
-python3 -m unittest discover -s tests -t .    # 55 tests, all passing
+python3 -m unittest discover -s tests -t .    # 65 tests, all passing
 ./tools/make_app.sh                 # rebuild DateTree.app
 python3 tools/make_icon.py          # regenerate the icon only
 ```
@@ -35,7 +35,7 @@ python3 tools/make_icon.py          # regenerate the icon only
 | `datetree/exif.py` | NEF (TIFF) capture-date reader, hand-rolled with `struct` |
 | `datetree/organizer.py` | File discovery + copy engine, GUI-agnostic |
 | `datetree/gui.py` | Tkinter UI |
-| `datetree/settings.py` | Remembers last-used folders |
+| `datetree/settings.py` | Remembers last-used folders and the eject-reminder option |
 | `datetree/__main__.py` | Entry point; also the date-inspection CLI |
 | `tools/` | `make_app.sh`, `launcher.sh.in`, `make_icon.py` |
 | `assets/DateTree.icns` | Tracked icon asset; the bundle gets a copy |
@@ -72,9 +72,10 @@ source == destination rejected; nothing is ever moved or deleted.
 - `python@3.13` is also installed **without Tk** — handy for testing Tk-less
   code paths, and a trap if something picks it up accidentally.
 - `/usr/bin/python3` is 3.9 with Tk 8.5; works but looks dated.
-- Git repo on `main`, no remote. History starts at the initial commit; the app
-  was built before the repo existed, so early stages aren't in history — that
-  initial commit message records the sequence. Commit as work progresses now.
+- Git repo on `main`, remote `origin` = github.com/deevodavis71/DateTreePy.
+  History starts at the initial commit; the app was built before the repo
+  existed, so early stages aren't in history — that initial commit message
+  records the sequence. Commit as work progresses now.
 
 ## Gotchas discovered the hard way
 
@@ -111,7 +112,7 @@ Each of these cost real debugging time. They are all verified, not theory.
 
 ## Verification status
 
-- 55 tests pass (`unittest`, no pytest). 7 of them drive real Tk widgets and
+- 65 tests pass (`unittest`, no pytest). Several of them drive real Tk widgets and
   copy real files through the worker thread.
 - The EXIF reader is confirmed working against genuine Nikon NEF files: Steve
   tested it on real photographs on 2026-07-26. Automated coverage still uses

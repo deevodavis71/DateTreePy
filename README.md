@@ -84,6 +84,12 @@ is left empty and the status line says so. The choices live in
 `~/Library/Application Support/DateTree/settings.json`; deleting that file just
 resets the app to an empty first-run state.
 
+Tick **Remind me to eject the card after copying** to get a popup, once a copy
+finishes, telling you to eject the card and remove it. It names the volume, and
+only appears when the source is on a mounted volume (something under
+`/Volumes`), the run wasn't cancelled and nothing failed to copy. The tick box
+is off by default and is remembered alongside the folders.
+
 To spot-check the date reader against real files without opening the GUI:
 
 ```sh
@@ -217,7 +223,7 @@ resolved and which Python it used.
 | `datetree/exif.py` | Dependency-free EXIF capture-date reader for NEF/TIFF |
 | `datetree/organizer.py` | File discovery and the copy engine |
 | `datetree/gui.py` | Tkinter interface |
-| `datetree/settings.py` | Remembers the last-used folders between runs |
+| `datetree/settings.py` | Remembers the last-used folders and options between runs |
 | `datetree/__main__.py` | Entry point and the date-inspection helper |
 | `tests/` | Unit tests plus GUI tests that drive the real widgets |
 

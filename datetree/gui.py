@@ -112,6 +112,18 @@ def human_bytes(count: int) -> str:
     return f"{size:.1f} TB"
 
 
+def volume_name(path: Path) -> str | None:
+    """Name of the mounted volume under /Volumes that holds `path`, if any.
+
+    The boot disk also appears in /Volumes, but as a symlink to `/`, so
+    resolving the path first keeps internal folders from counting as a card.
+    """
+    parts = path.resolve().parts
+    if len(parts) >= 3 and parts[:2] == ("/", "Volumes"):
+        return parts[2]
+    return None
+
+
 def _round_rect(canvas: tk.Canvas, x1, y1, x2, y2, radius, **kwargs) -> int:
     """Draw a rounded rectangle (Tk has no primitive for one)."""
     points = [
@@ -348,10 +360,11 @@ class DateTreeApp:
         self._worker: threading.Thread | None = None
         self._settings_path = settings_path or settings_store.default_settings_path()
         self._restoring = False
+        self._run_source: Path | None = None
 
         root.title(APP_NAME)
-        root.minsize(568, 508)
-        root.geometry("600x532")
+        root.minsize(568, 536)
+        root.geometry("600x560")
 
         self._configure_styles()
         self._build_layout()
@@ -412,6 +425,12 @@ class DateTreeApp:
         )
         self.status.grid(row=2, column=0, columnspan=3, sticky="ew", pady=(14, 0))
 
+        self.eject_reminder = tk.BooleanVar(value=False)
+        ttk.Checkbutton(
+            outer, text="Remind me to eject the card after copying",
+            variable=self.eject_reminder, command=self._save_settings,
+        ).grid(row=3, column=0, columnspan=3, sticky="w", pady=(10, 0))
+
         self.source_panel.on_change(self._on_folder_chosen)
         self.dest_panel.on_change(self._on_folder_chosen)
 
@@ -422,6 +441,7 @@ class DateTreeApp:
     def _restore_folders(self) -> None:
         """Re-select the folders used last time, if they are still there."""
         saved = settings_store.load(self._settings_path)
+        self.eject_reminder.set(saved.eject_reminder)
         self._restoring = True
         unavailable = []
         for panel, path, label in (
@@ -445,14 +465,18 @@ class DateTreeApp:
 
     def _on_folder_chosen(self) -> None:
         if not self._restoring:
-            settings_store.save(
-                settings_store.Settings(
-                    source=self.source_panel.path,
-                    destination=self.dest_panel.path,
-                ),
-                self._settings_path,
-            )
+            self._save_settings()
         self._refresh_ready_state()
+
+    def _save_settings(self) -> None:
+        settings_store.save(
+            settings_store.Settings(
+                source=self.source_panel.path,
+                destination=self.dest_panel.path,
+                eject_reminder=self.eject_reminder.get(),
+            ),
+            self._settings_path,
+        )
 
     def _refresh_ready_state(self) -> None:
         if self._running:
@@ -475,6 +499,7 @@ class DateTreeApp:
             return
 
         self._cancel.clear()
+        self._run_source = source
         self.progress.configure(mode="indeterminate", maximum=100, value=0)
         self.progress.start(12)
         self.status.configure(text="Scanning for NEF files...")
@@ -578,6 +603,28 @@ class DateTreeApp:
                 APP_NAME, f"{len(failures)} file(s) could not be copied:\n\n{detail}",
                 parent=self.root,
             )
+        elif not summary.cancelled:
+            self._remind_to_eject()
+
+    def _remind_to_eject(self) -> None:
+        """Nudge the user to eject the card, if they asked to be reminded.
+
+        Only a source on a mounted volume has anything to eject; a run from a
+        folder on the internal disk stays quiet. Cancelled or partly failed runs
+        are skipped too, since the user will likely want to run them again.
+        """
+        if not self.eject_reminder.get() or self._run_source is None:
+            return
+        name = volume_name(self._run_source)
+        if name is None:
+            return
+        messagebox.showinfo(
+            APP_NAME,
+            f"Copying is finished. Please eject \u201c{name}\u201d now.",
+            detail="Eject it in Finder (or drag it to the Trash), then remove "
+                   "the card.",
+            parent=self.root,
+        )
 
     def _on_close(self) -> None:
         if self._running:

@@ -74,6 +74,18 @@ class SettingsTests(unittest.TestCase):
             settings.save(settings.Settings(source=Path("/x")), blocker / "s.json")
         )
 
+    def test_eject_reminder_round_trips(self):
+        settings.save(settings.Settings(eject_reminder=True), self.path)
+        self.assertTrue(settings.load(self.path).eject_reminder)
+
+    def test_eject_reminder_defaults_off_for_older_settings_files(self):
+        self.path.write_text(json.dumps({"source": "/x"}), encoding="utf-8")
+        self.assertFalse(settings.load(self.path).eject_reminder)
+
+    def test_eject_reminder_ignores_non_boolean_values(self):
+        self.path.write_text(json.dumps({"eject_reminder": "yes"}), encoding="utf-8")
+        self.assertFalse(settings.load(self.path).eject_reminder)
+
     def test_default_path_is_under_application_support_on_macos(self):
         path = settings.default_settings_path()
         self.assertEqual(path.name, "settings.json")
