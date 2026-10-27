@@ -15,7 +15,9 @@ future macOS releases. The name, layout and button wording come from that app;
 **everything here was written from screenshots only**. Never copy, decompile or
 inspect the original's code or assets, and don't present this as affiliated with
 or endorsed by its author. The credit section at the top of `README.md` says all
-this publicly — keep it there.
+this publicly — keep it there. The UI was restyled in October 2026 at Steve's
+request (cards, system font, pill button). It keeps the original's two-panel
+left-to-right flow and its wording, so the credit still stands.
 
 ## Commands
 
@@ -23,7 +25,7 @@ this publicly — keep it there.
 ./start.sh                          # run the app (terminal)
 open DateTree.app                   # run the app (LaunchServices — see gotchas)
 ./start.sh path/to/FILE.NEF         # print the date it would file a file under
-python3 -m unittest discover -s tests -t .    # 65 tests, all passing
+python3 -m unittest discover -s tests -t .    # 68 tests, all passing
 ./tools/make_app.sh                 # rebuild DateTree.app
 ./tools/build_release.sh            # standalone app + zip in dist/ (PyInstaller)
 python3 tools/make_icon.py          # regenerate the icon only
@@ -38,7 +40,7 @@ python3 tools/make_icon.py          # regenerate the icon only
 | `datetree/gui.py` | Tkinter UI |
 | `datetree/settings.py` | Remembers last-used folders and the eject-reminder option |
 | `datetree/__main__.py` | Entry point; also the date-inspection CLI |
-| `tools/` | `make_app.sh`, `launcher.sh.in`, `make_icon.py`, `build_release.sh` |
+| `tools/` | `make_app.sh`, `launcher.sh.in`, `make_icon.py`, `build_release.sh`, `screenshots.py` |
 | `.github/workflows/release.yml` | Pushing a `v*` tag builds and publishes a release |
 | `assets/DateTree.icns` | Tracked icon asset; the bundle gets a copy |
 | `tests/nef_fixture.py` | Builds synthetic NEFs so tests need no real raw files |
@@ -109,9 +111,11 @@ Each of these cost real debugging time. They are all verified, not theory.
 4. **ttk widgets have no `-background` option.** `widget.cget("background")` on
    a `ttk.Frame` raises `TclError`; canvas backgrounds come from
    `window_background()`, which reads the theme via `ttk.Style().lookup`.
-5. **macOS native buttons can't be recoloured**, hence the accent Organize
-   button is a custom `tk.Canvas` widget with its own hover/press/disabled
-   states.
+5. **macOS native buttons can't be recoloured**, hence the cards, the pill
+   Organize button and the progress bar are all custom `tk.Canvas` widgets.
+   Draw rounded shapes with `rounded_rect()`, which uses ovals and is
+   anti-aliased. Smoothed polygons give visibly faceted corners, which is what
+   the first UI had.
 6. **`make_app.sh` must verify `import tkinter` before linking an
    interpreter.** Linking a Tk-less Python built an app that reported success
    but couldn't start, and the launcher's `start.sh` fallback did *not* rescue
@@ -126,7 +130,7 @@ Each of these cost real debugging time. They are all verified, not theory.
 
 ## Verification status
 
-- 65 tests pass (`unittest`, no pytest). Several of them drive real Tk widgets and
+- 68 tests pass (`unittest`, no pytest). Several of them drive real Tk widgets and
   copy real files through the worker thread.
 - The EXIF reader is confirmed working against genuine Nikon NEF files: Steve
   tested it on real photographs on 2026-07-26. Automated coverage still uses
@@ -138,11 +142,12 @@ Each of these cost real debugging time. They are all verified, not theory.
   (arm64, Homebrew 3.14). The app launched via `open` and loaded only its
   bundled Python/Tcl/Tk, with no Homebrew paths. The universal2 CI path
   (python.org pkg) had not run yet at that point.
-- **Screen capture is blocked** in this environment (macOS TCC — `screencapture`
-  fails with "could not create image from display"), so no GUI change has ever
-  been visually confirmed by Claude. Verify layout/painting by reasoning about
-  widget state, or ask the user to look. Reading generated PNGs with the Read
-  tool *does* work, which is how the app icon was checked.
+- **Screen capture works** as of 2026-10-27; it was blocked by macOS TCC
+  before then. `python3 tools/screenshots.py OUT_DIR [aqua|darkaqua]` captures
+  the window in four states, then you read the PNGs with the Read tool. The
+  current card UI was checked that way in light and dark mode, including hover
+  and the eject popup. A native `messagebox` runs a modal loop in which Tk
+  `after` callbacks don't fire, so capture a dialog from a `threading.Timer`.
 
 ## Conventions
 

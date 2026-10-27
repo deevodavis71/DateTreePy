@@ -76,18 +76,31 @@ class GuiTests(unittest.TestCase):
         self.assertTrue(self.app.organize_button._enabled)
         self.assertEqual(self.app.status.cget("text"), "Ready.")
 
-    def test_select_dialog_updates_field_and_tooltip(self):
+    def test_select_dialog_updates_card_and_tooltip(self):
         panel = self.app.source_panel
-        self.assertEqual(panel._var.get(), "NIKON Z 6")
-        self.assertEqual(str(panel._entry.cget("style")), "Placeholder.TEntry")
+        self.assertEqual(panel.title, "No card chosen")
         with mock.patch.object(
             gui.filedialog, "askdirectory", return_value=str(self.source)
         ):
             panel.choose()
         self.assertEqual(panel.path, self.source)
-        self.assertEqual(panel._var.get(), "card")
-        self.assertEqual(str(panel._entry.cget("style")), "Path.TEntry")
+        self.assertEqual(panel.title, "card")
         self.assertEqual(panel._tooltip._text, str(self.source))
+
+    def test_long_text_is_shortened_in_the_middle_to_fit(self):
+        font = ("Helvetica", 12)
+        text = "/Volumes/A VERY LONG CARD NAME/DCIM/100NZ6_ARCHIVE/2026"
+        fitted = gui.fit_text(self.root, font, text, 120)
+        self.assertIn("\u2026", fitted)
+        self.assertTrue(fitted.startswith("/Vo") and fitted.endswith("26"))
+        self.assertLessEqual(int(self.root.tk.call("font", "measure", font, fitted)), 120)
+        self.assertEqual(gui.fit_text(self.root, font, "short", 120), "short")
+
+    def test_cards_ignore_clicks_while_a_copy_runs(self):
+        self.app.source_panel.set_enabled(False)
+        with mock.patch.object(gui.filedialog, "askdirectory") as askdirectory:
+            self.app.source_panel.choose()
+        askdirectory.assert_not_called()
 
     def test_cancelled_dialog_leaves_state_untouched(self):
         with mock.patch.object(gui.filedialog, "askdirectory", return_value=""):
@@ -110,7 +123,8 @@ class GuiTests(unittest.TestCase):
         self.assertIn("Copied 2", self.app.status.cget("text"))
         # Controls are handed back to the user once the run ends.
         self.assertTrue(self.app.organize_button._enabled)
-        self.assertEqual(str(self.app.source_panel._button.cget("state")), "normal")
+        self.assertTrue(self.app.source_panel.enabled)
+        self.assertEqual(self.app.progress.fraction, 1.0)
 
     def test_second_run_reports_skips(self):
         build_nef(self.source / "DSC_0001.NEF", original="2026:07:25 14:32:10")
@@ -149,8 +163,8 @@ class GuiTests(unittest.TestCase):
         restarted = self._make_app()
         self.assertEqual(restarted.source_panel.path, self.source)
         self.assertEqual(restarted.dest_panel.path, self.dest)
-        self.assertEqual(restarted.source_panel._var.get(), "card")
-        self.assertEqual(str(restarted.dest_panel._entry.cget("style")), "Path.TEntry")
+        self.assertEqual(restarted.source_panel.title, "card")
+        self.assertEqual(restarted.dest_panel.title, "library")
         self.assertTrue(restarted.organize_button._enabled)
 
     def test_saved_folder_that_no_longer_exists_is_not_restored(self):
@@ -162,7 +176,7 @@ class GuiTests(unittest.TestCase):
 
         restarted = self._make_app()
         self.assertIsNone(restarted.source_panel.path)
-        self.assertEqual(restarted.source_panel._var.get(), "NIKON Z 6")
+        self.assertEqual(restarted.source_panel.title, "No card chosen")
         self.assertEqual(restarted.dest_panel.path, self.dest)
         self.assertFalse(restarted.organize_button._enabled)
         self.assertIn("unavailable", restarted.status.cget("text"))
@@ -172,7 +186,7 @@ class GuiTests(unittest.TestCase):
         self.addCleanup(self.root.withdraw)
         gui.activate_window(self.root)
         self.assertTrue(self.root.winfo_viewable())
-        self.assertEqual(self.root.winfo_width(), 600)
+        self.assertEqual(self.root.winfo_width(), gui.WINDOW_WIDTH)
         # -topmost must be released again, or the window would sit above
         # everything else for the rest of the session.
         self._pump_until(lambda: not self.root.attributes("-topmost"))
@@ -222,6 +236,10 @@ class GuiTests(unittest.TestCase):
 
 
 class HelperTests(unittest.TestCase):
+    def test_display_path_abbreviates_the_home_folder(self):
+        self.assertEqual(gui.display_path(Path.home() / "Pictures"), "~/Pictures")
+        self.assertEqual(gui.display_path(Path("/Volumes/CARD")), "/Volumes/CARD")
+
     def test_volume_name_for_a_path_on_a_mounted_volume(self):
         self.assertEqual(
             gui.volume_name(Path("/Volumes/NIKON Z 6/DCIM/100NZ6")), "NIKON Z 6"

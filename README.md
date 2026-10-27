@@ -87,10 +87,12 @@ location is baked into its launcher. Startup problems are logged to
 fix it if there isn't one. `python3 -m datetree` from the project root works
 just as well.
 
-Pick a source folder on the left ("Copy From:") and a destination on the right
-("Organize Into:"), then press **Organize**. Either panel's icon is clickable
-as well as its *Select...* button, and hovering a folder name shows its full
-path. The button turns into **Cancel** while a copy is running.
+Pick a source folder on the left (**Copy From**) and a destination on the
+right (**Organize Into**), then press **Organize**. Click anywhere on a card to
+choose its folder. Each card shows the folder's name and location, and
+hovering over it shows the full path. While a copy runs, the button turns into
+**Cancel** and the cards are locked. The window follows the system's light or
+dark appearance.
 
 Both folders are remembered and re-selected the next time the app starts. If a
 remembered folder has gone away — an ejected card, a renamed folder — that side
