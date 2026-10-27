@@ -10,6 +10,14 @@ folder and files them into date folders under a destination of your choosing:
 The date comes from the photo's own EXIF capture time, so files land under the
 day the shutter fired rather than whenever they were last touched.
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshot-dark.png">
+    <img src="docs/screenshot-light.png" width="640"
+         alt="DateTree window: a Copy From card showing the NIKON Z 6 memory card, an arrow, and an Organize Into card showing the Pictures folder, with a full progress bar and the status line reading Copied 212 (5.3 GB), skipped 38 already present.">
+  </picture>
+</p>
+
 ## Origin and credit
 
 This is a reimplementation of **DateTree by Colin Henein**
@@ -242,6 +250,7 @@ resolved and which Python it used.
 | `datetree/settings.py` | Remembers the last-used folders and options between runs |
 | `datetree/__main__.py` | Entry point and the date-inspection helper |
 | `tests/` | Unit tests plus GUI tests that drive the real widgets |
+| `docs/` | README screenshots (`python3 tools/screenshots.py --readme`) |
 
 ## Tests
 

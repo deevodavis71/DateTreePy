@@ -148,6 +148,8 @@ Each of these cost real debugging time. They are all verified, not theory.
   current card UI was checked that way in light and dark mode, including hover
   and the eject popup. A native `messagebox` runs a modal loop in which Tk
   `after` callbacks don't fire, so capture a dialog from a `threading.Timer`.
+  `--readme` regenerates `docs/screenshot-{light,dark}.png` (staged state,
+  window capture with shadow); re-run it after visible UI changes.
 
 ## Conventions
 
