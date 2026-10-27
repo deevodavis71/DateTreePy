@@ -25,6 +25,7 @@ open DateTree.app                   # run the app (LaunchServices — see gotcha
 ./start.sh path/to/FILE.NEF         # print the date it would file a file under
 python3 -m unittest discover -s tests -t .    # 65 tests, all passing
 ./tools/make_app.sh                 # rebuild DateTree.app
+./tools/build_release.sh            # standalone app + zip in dist/ (PyInstaller)
 python3 tools/make_icon.py          # regenerate the icon only
 ```
 
@@ -37,7 +38,8 @@ python3 tools/make_icon.py          # regenerate the icon only
 | `datetree/gui.py` | Tkinter UI |
 | `datetree/settings.py` | Remembers last-used folders and the eject-reminder option |
 | `datetree/__main__.py` | Entry point; also the date-inspection CLI |
-| `tools/` | `make_app.sh`, `launcher.sh.in`, `make_icon.py` |
+| `tools/` | `make_app.sh`, `launcher.sh.in`, `make_icon.py`, `build_release.sh` |
+| `.github/workflows/release.yml` | Pushing a `v*` tag builds and publishes a release |
 | `assets/DateTree.icns` | Tracked icon asset; the bundle gets a copy |
 | `tests/nef_fixture.py` | Builds synthetic NEFs so tests need no real raw files |
 
@@ -57,6 +59,11 @@ back through a `queue.Queue` polled by `root.after`. Preserve that split.
   rename-with-suffix. Re-running over a card is meant to be cheap and safe.
 - **Toolkit:** tkinter via `brew install python-tk`. PySide6 was offered and
   declined — do not add GUI dependencies.
+- **Releases:** a self-contained universal2 `.app` frozen with PyInstaller,
+  ad-hoc signed (no Developer ID, so users click *Open Anyway* once),
+  published by pushing a `v*` tag that matches `__version__`. PyInstaller is
+  the one sanctioned non-stdlib package, and only as a **build tool**, pinned
+  in `tools/release-requirements.txt`. The app's runtime stays stdlib-only.
 - **File types:** `.NEF` only. Sidecars (`.XMP`) and RAW+JPEG partners were
   offered and declined.
 
@@ -110,6 +117,13 @@ Each of these cost real debugging time. They are all verified, not theory.
    but couldn't start, and the launcher's `start.sh` fallback did *not* rescue
    it because the symlink existed. There's now an up-front guard.
 
+7. **Tk objects must not be garbage-collected on the worker thread.** Old
+   `DateTreeApp`s from earlier GUI tests sit in reference cycles; if the cyclic
+   GC reclaims them on the copy worker, a Tk variable's `__del__` calls Tcl off
+   the main thread and the run stalls. The suite then failed every time.
+   `GuiTests.setUp` runs `gc.collect()` on the main thread first. The real app
+   has one long-lived `DateTreeApp`, so it isn't affected.
+
 ## Verification status
 
 - 65 tests pass (`unittest`, no pytest). Several of them drive real Tk widgets and
@@ -120,6 +134,10 @@ Each of these cost real debugging time. They are all verified, not theory.
   large to commit. To re-check after changing `exif.py`, run
   `./start.sh /path/to/real.NEF` — `(exif)` means the capture date was read,
   `(mtime)` means it fell back and the reader needs a look.
+- Release build: `tools/build_release.sh` verified locally on 2026-10-27
+  (arm64, Homebrew 3.14). The app launched via `open` and loaded only its
+  bundled Python/Tcl/Tk, with no Homebrew paths. The universal2 CI path
+  (python.org pkg) had not run yet at that point.
 - **Screen capture is blocked** in this environment (macOS TCC — `screencapture`
   fails with "could not create image from display"), so no GUI change has ever
   been visually confirmed by Claude. Verify layout/painting by reasoning about

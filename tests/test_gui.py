@@ -1,5 +1,6 @@
 """End-to-end checks that drive the real Tk widgets (window kept hidden)."""
 
+import gc
 import sys
 import tempfile
 import time
@@ -34,6 +35,11 @@ class GuiTests(unittest.TestCase):
         cls._root.withdraw()
 
     def setUp(self):
+        # Earlier tests leave apps behind in reference cycles. If the cyclic
+        # GC happened to reclaim them on a copy worker thread, their Tk
+        # variables' __del__ would call into Tcl off the main thread and stall
+        # that run, so reclaim them here, on the main thread, first.
+        gc.collect()
         self._tmp = tempfile.TemporaryDirectory()
         self.tmp = Path(self._tmp.name)
         self.addCleanup(self._tmp.cleanup)

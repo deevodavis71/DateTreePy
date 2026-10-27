@@ -44,6 +44,20 @@ backups.**
 
 The MIT licence at the foot of this file says the same thing in formal terms.
 
+## Download
+
+Ready-built copies are on the
+[Releases page](https://github.com/deevodavis71/DateTreePy/releases). Unzip
+the download and move **DateTree.app** to Applications. That build bundles its
+own Python, so it needs nothing else installed, and it runs on Apple silicon
+and Intel Macs (macOS 12 or later).
+
+The app isn't notarized by Apple, so macOS refuses to open it the first time.
+Open **System Settings › Privacy & Security**, scroll down to the message about
+DateTree and click **Open Anyway**. You only have to do this once.
+
+Everything below is about running from source.
+
 ## Requirements
 
 - Python 3.13+ with Tk support. On macOS:
@@ -236,6 +250,33 @@ python3 -m unittest discover -s tests -t .
 `tests/nef_fixture.py` builds tiny synthetic NEFs (valid TIFF containers with
 real EXIF date tags, both byte orders) so the date logic can be tested without
 committing 25MB raw files.
+
+## Making a release
+
+`.github/workflows/release.yml` builds and publishes a release when a version
+tag is pushed. The tag must match `__version__` in `datetree/__init__.py`:
+
+```sh
+# bump __version__, commit, then:
+git tag v1.1.0
+git push origin main v1.1.0
+```
+
+CI installs python.org's universal2 Python (pinned by checksum), runs the
+tests, freezes the app with `tools/build_release.sh` and attaches
+`DateTree-<version>-macOS-universal2.zip` to a new GitHub release. To try the
+same build locally (for this Mac's architecture only):
+
+```sh
+./tools/build_release.sh     # -> dist/DateTree.app and dist/DateTree-*.zip
+```
+
+That script uses [PyInstaller](https://pyinstaller.org) to bundle Python and
+Tk into the app. PyInstaller is a build tool only: it goes into a throwaway
+venv under `build/`, and the app itself still uses nothing outside the
+standard library. `make_app.sh` and `build_release.sh` serve different
+purposes. The first makes a lightweight bundle that runs this checkout; the
+second makes a standalone copy you can hand to someone else.
 
 ## Licence
 

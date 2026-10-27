@@ -10,3 +10,7 @@ __pycache__/
 .claude/settings.local.json
 
 .DS_Store
+
+# Release build output (tools/build_release.sh).
+/build/
+/dist/

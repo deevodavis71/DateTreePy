@@ -1,0 +1,72 @@
+# Build a self-contained DateTree.app and publish it as a GitHub release.
+#
+# Triggered by pushing a version tag that matches datetree/__init__.py:
+#   git tag v1.1.0 && git push origin v1.1.0
+
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+env:
+  # python.org's universal2 build, so one app runs on Apple silicon and Intel
+  # and carries its own Tcl/Tk. Pinned by checksum.
+  PYTHON_VERSION: "3.14.6"
+  PYTHON_PKG_SHA256: d3c9fff52214847e4fab03e9eaf53dd2a8e51e3534aa0b61f201b749f86bef28
+  PYTHON: /Library/Frameworks/Python.framework/Versions/3.14/bin/python3
+
+jobs:
+  release:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the tag matches __version__
+        run: |
+          version="$(sed -n 's/^__version__ = "\(.*\)"/\1/p' datetree/__init__.py)"
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match __version__ $version"
+            exit 1
+          fi
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Install python.org Python ${{ env.PYTHON_VERSION }}
+        run: |
+          pkg="$RUNNER_TEMP/python.pkg"
+          curl -sSfL -o "$pkg" \
+            "https://www.python.org/ftp/python/$PYTHON_VERSION/python-$PYTHON_VERSION-macos11.pkg"
+          echo "$PYTHON_PKG_SHA256  $pkg" | shasum -a 256 -c -
+          sudo installer -pkg "$pkg" -target /
+          "$PYTHON" -c 'import sys, tkinter; print(sys.version, "Tk", tkinter.TkVersion)'
+
+      - name: Run tests
+        run: $PYTHON -m unittest discover -s tests -t . -v
+
+      - name: Build DateTree.app (universal2)
+        run: ARCH=universal2 DATETREE_PYTHON="$PYTHON" ./tools/build_release.sh
+
+      - name: Check the app is universal
+        run: lipo -archs dist/DateTree.app/Contents/MacOS/DateTree | grep -q "x86_64 arm64"
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > "$RUNNER_TEMP/notes.md" <<'EOF'
+          Download `DateTree-*-macOS-universal2.zip`, unzip it and move
+          **DateTree.app** to Applications. It runs on Apple silicon and Intel
+          Macs (macOS 12 or later) and needs nothing else installed.
+
+          The app is not notarized by Apple, so the first time you open it macOS
+          will refuse. Open **System Settings › Privacy & Security**, scroll
+          down to the message about DateTree and click **Open Anyway**. You only
+          need to do this once.
+          EOF
+          gh release create "$GITHUB_REF_NAME" dist/DateTree-*.zip \
+            --title "DateTree $VERSION" \
+            --notes-file "$RUNNER_TEMP/notes.md" \
+            --generate-notes
